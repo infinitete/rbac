@@ -7,21 +7,18 @@ var DelPermErr = errors.New("del perm error")
 var AddPermErr = errors.New("add perm error")
 
 type User interface {
+	Key() string
 	HasRole(role Role) bool
 	AddRole(role Role) error
-	GetRoles() []Role
-
-	HasPerm(perm Perm) bool
-	AddPerm(perm Perm) error
+	GetRoles() []string
 }
 
 type Role interface {
 	Key() string
-	HasPerm(perm Perm) bool
 	AddPerm(perm Perm) error
 	DelPerm(perm Perm) error
-
-	GetPerms() []Perm
+	HasPerm(perm Perm) bool
+	GetPerms() []string
 }
 
 type Perm interface {
@@ -30,30 +27,24 @@ type Perm interface {
 
 type Resource interface {
 	Key() string
-	DelPerm(perm Perm) error
-	AddPerm(perm Perm) error
-	TryAccessWithUser(user User) error
-	TryAccessWithRole(role Role) error
-	TryAccessWithPerm(perm Perm) error
+	DelPerm(Perm) error
+	AddPerm(Perm) error
+	Access(Perm) error
 }
 
-type Reader[T any] func(model T) error
-type Writer[T any] func(key string) (T, error)
-
-type RbacService[T any] interface {
-	SetReader(reader Reader[T])
-	SetWriter(writer Writer[T])
+type Store[T any] interface {
+	Read(key string) (T, error)
+	Create(key string, model T) (T, error)
+	Update(key string, model T) (T, error)
+	Delete(key string) error
 }
 
-type UserService RbacService[User]
-type RoleService RbacService[Role]
-type PermService RbacService[Perm]
-type ResourceService RbacService[Resource]
+type Service[T any] interface {
+	Store[T]
+	SetStore(store Store[T])
+}
 
-// type UserWriter Writer[User]
-// type RoleWriter Writer[Role]
-// type PermWriter Writer[Perm]
-
-// type UserReader Reader[User]
-// type RoleReader Reader[Role]
-// type PermReader Reader[Perm]
+type UserService Service[User]
+type RoleService Service[Role]
+type PermService Service[Perm]
+type ResourceService Service[Resource]
