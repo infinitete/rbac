@@ -7,7 +7,7 @@ type Role struct {
 	Perms     []string
 }
 
-func (role *Role) Key() string {
+func (role Role) Key() string {
 	return role.UniqueKey
 }
 

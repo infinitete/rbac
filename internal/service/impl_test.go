@@ -7,10 +7,10 @@ import (
 	"testing"
 )
 
-var resourceStore rbac.Store[rbac.Resource]
-var userStore rbac.Store[rbac.User]
-var roleStore rbac.Store[rbac.Role]
-var permStore rbac.Store[rbac.Perm]
+var resourceStore rbac.Store[model.Resource]
+var userStore rbac.Store[model.User]
+var roleStore rbac.Store[model.Role]
+var permStore rbac.Store[model.Perm]
 
 var resourceService *ResourceService
 var userService *UserService
@@ -18,10 +18,10 @@ var roleService *RoleService
 var permService *PermService
 
 func init() {
-	resourceStore = io.GetStore[rbac.Resource]()
-	userStore = io.GetStore[rbac.User]()
-	roleStore = io.GetStore[rbac.Role]()
-	permStore = io.GetStore[rbac.Perm]()
+	resourceStore = io.GetStore[*model.Resource]()
+	userStore = io.GetStore[*model.User]()
+	roleStore = io.GetStore[*model.Role]()
+	permStore = io.GetStore[*model.Perm]()
 
 	resourceService = GetResourceService(resourceStore)
 	userService = GetUserService(userStore)
@@ -31,25 +31,24 @@ func init() {
 
 func TestRbac(t *testing.T) {
 	resource := &model.Resource{UniqueKey: "resource"}
-	user := model.User{
+	user := &model.User{
 		Name:  "test",
 		Roles: []string{},
 	}
-	role := model.Role{
+	role := &model.Role{
 		UniqueKey: "test_role",
 		Perms:     []string{},
 	}
-	perm := model.Perm{
+
+	perm := &model.Perm{
 		UniqueKey:   "test_perm",
 		Description: "it just for test",
 	}
 
-	r1, _ := resourceService.Create("", resource)
-	_ = r1.(*model.Resource).Perms
-	resource, _ = resourceService.Create(resource.Key(), resource)
-	_ = userService.Create(user.Key(), user)
-	_ = roleService.Create(role.Key(), role)
-	_ = permService.Create(perm.Key(), perm)
+	_ = resourceService.Create(resource)
+	_ = userService.Create(user)
+	_ = roleService.Create(role)
+	_ = permService.Create(perm)
 
 	err := resource.Access(perm)
 	t.Logf("AccessResult: %v", err) // access denied
@@ -61,9 +60,9 @@ func TestRbac(t *testing.T) {
 	t.Logf("AccessResult: %v", err)
 
 	user.AddRole(role)
-	user1 := model.User{}
-	user, _ = userStore.Update(user.Key(), user)
+	var user1 *model.User
+	_ = userStore.Update(user)
 	user1, err = userStore.Read(user.Key())
 
-	t.Logf("Roles: %v - %v", user.Roles, user1.Roles)
+	t.Logf("Roles: %p - %p", user1, user)
 }

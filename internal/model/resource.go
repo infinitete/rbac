@@ -7,7 +7,7 @@ type Resource struct {
 	Perms     []string
 }
 
-func (r *Resource) Key() string {
+func (r Resource) Key() string {
 	return r.UniqueKey
 }
 

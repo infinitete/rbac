@@ -7,7 +7,7 @@ type User struct {
 	Roles []string
 }
 
-func (user *User) Key() string {
+func (user User) Key() string {
 	return user.Name
 }
 

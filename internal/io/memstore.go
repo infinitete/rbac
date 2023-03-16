@@ -3,30 +3,33 @@ package io
 import (
 	"errors"
 	"sync"
+
+	"github.com/infinitete/rbac"
 )
 
 var ErrRecordNotFound = errors.New("record not found")
 
-type MemStore[T any] struct {
+type MemStore[T rbac.Storable] struct {
 	mu    sync.Mutex
-	items map[string]T
+	items map[string]*T
 }
 
 func (m *MemStore[T]) Read(key string) (T, error) {
 	if record, ok := m.items[key]; ok {
-		return record, nil
+		return *record, nil
 	}
 
 	var t T
 	return t, ErrRecordNotFound
 }
 
-func (m *MemStore[T]) Create(key string, item T) (T, error) {
+func (m *MemStore[T]) Create(item T) error {
 	m.mu.Lock()
-	m.items[key] = item
+	// TODO save
+	m.items[item.Key()] = &item
 	m.mu.Unlock()
 
-	return item, nil
+	return nil
 }
 
 func (m *MemStore[T]) Delete(key string) error {
@@ -36,13 +39,13 @@ func (m *MemStore[T]) Delete(key string) error {
 
 	return nil
 }
-func (m *MemStore[T]) Update(key string, item T) (T, error) {
-	return m.Create(key, item)
+func (m *MemStore[T]) Update(item T) error {
+	return m.Create(item)
 }
 
-func GetStore[T any]() *MemStore[T] {
+func GetStore[T rbac.Storable]() *MemStore[T] {
 	return &MemStore[T]{
 		mu:    sync.Mutex{},
-		items: make(map[string]T),
+		items: make(map[string]*T),
 	}
 }

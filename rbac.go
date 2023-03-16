@@ -6,6 +6,10 @@ var AccessDenied = errors.New("access denied")
 var DelPermErr = errors.New("del perm error")
 var AddPermErr = errors.New("add perm error")
 
+type Storable interface {
+	Key() string
+}
+
 type User interface {
 	Key() string
 	HasRole(role Role) bool
@@ -33,9 +37,9 @@ type Resource interface {
 }
 
 type Store[T any] interface {
-	Read(key string) (T, error)
-	Create(key string, model T) (T, error)
-	Update(key string, model T) (T, error)
+	Read(key string) (*T, error)
+	Create(model *T) error
+	Update(model *T) error
 	Delete(key string) error
 }
 

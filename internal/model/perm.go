@@ -5,6 +5,6 @@ type Perm struct {
 	Description string
 }
 
-func (p *Perm) Key() string {
+func (p Perm) Key() string {
 	return p.UniqueKey
 }
